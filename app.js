@@ -161,7 +161,10 @@ function get_uniform_locations(gl,shader_program){
     const uni_rng_seed = gl.getUniformLocation(shader_program,"rng_seed");
     const uni_birth_prob = gl.getUniformLocation(shader_program,"birth_prob");
     const uni_colors =gl.getUniformLocation(shader_program,"colors");
-    uniforms = {u_time : uni_time,u_color_attach : uni_color_attach, u_tex : uni_tex, u_step : uni_step, u_rng_seed: uni_rng_seed,u_birth_prob: uni_birth_prob, u_colors: uni_colors};
+    const uni_resolution_x =gl.getUniformLocation(shader_program,"resolution_x");
+    const uni_resolution_y =gl.getUniformLocation(shader_program,"resolution_y");
+    uniforms = {u_time : uni_time,u_color_attach : uni_color_attach, u_tex : uni_tex, u_step : uni_step, u_rng_seed: uni_rng_seed,u_birth_prob: uni_birth_prob, u_colors: uni_colors,
+                u_resolution_x : uni_resolution_x, u_resolution_y: uni_resolution_y};
     return uniforms;
 }
 
@@ -192,13 +195,52 @@ function updatespeedSlider(slideAmount) {
     simulation_speed = slideAmount;
     document.getElementById("simspeed").innerHTML = "Simulation speed: ".concat(simulation_speed.toString());
 }
+var zoom =1;
+function zoom_func(event){
+   zoom += event.deltaY * -0.01 *0.1;
+   //zoom = 0.5;
+   console.log(event.deltaY)
+}
+function set_texture_settings(gl,tex_setting){
+    switch(tex_setting){
+        case(0)://Working
+            
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);//LINEAR
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            break;
+        case(1)://DOesnt work at all?
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);//LINEAR
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            break;
+        case(2)://DOesnt work at all?
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);//LINEAR
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            break;
+        case(3)://Half working , only on white part. use debug in init to set half the screen to white.
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);//LINEAR
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            break;
+
+    }
+}
+
 
 function InitDemo(){
     var canvas = document.getElementById('game-surface');
-    const viewport_width=parseInt(screen.width*0.95);
+    const viewport_width = parseInt(screen.width*0.95);
     const viewport_height= parseInt(0.7*(screen.height));//parseInt(screen.height);//parseInt(800*0.75);//
+    const tex_width= viewport_width;
+    const tex_heigth= viewport_height;//Serious bug if not the same :(
     var gl=init_WebGL(canvas,viewport_width,viewport_height);//(.,width , height)
-
+    canvas.onwheel = zoom_func;
     
     var vaoExt = gl.getExtension('OES_vertex_array_object');//Todo make this neater
     var drawbuf = gl.getExtension('WEBGL_draw_buffers');//Todo make this neater
@@ -243,37 +285,19 @@ function InitDemo(){
 
 
 
+    const tex_setting =3;
     //Texture
     gl.activeTexture(gl.TEXTURE0);
     const tex_src = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex_src);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, viewport_width,viewport_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//0 vs NULL in last? WTF is this
-    if(0){//NOT WORKING IDK WHY NEED TO DEBUG
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    }else{//CLAMP_TO_EDGE  CLAMP_TO_BORDER // MIRRORED_REPEAT
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    }
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_heigth, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//0 vs NULL in last? WTF is this
+    set_texture_settings(gl,tex_setting);
     
     gl.activeTexture(gl.TEXTURE1);//Make this 0??
     const tex_dest = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex_dest);//Maybe something with this????
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, viewport_width,viewport_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//performance !! rgb vs r
-    
-    if(0){
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    }else{
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    }
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_heigth, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//performance !! rgb vs r
+    set_texture_settings(gl,tex_setting);
 
 
     
@@ -325,6 +349,8 @@ function InitDemo(){
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
     gl.uniform1i(uniforms_draw.u_colors,1);
+    gl.uniform1i(uniforms_draw.u_resolution_x,tex_width);
+    gl.uniform1i(uniforms_draw.u_resolution_y,tex_heigth);
 
     var loop = function(){
 
@@ -394,6 +420,7 @@ function InitDemo(){
         }
         
         gl.useProgram(render_shader_program);
+        gl.uniform1f(gl.getUniformLocation(render_shader_program,"zoom"),zoom);
         vaoExt['bindVertexArrayOES'](render_buffers.vao);//Can leave this out apparently slightly hacky thought
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         if(color_attach == 0){
@@ -428,11 +455,11 @@ const src_fragment_render=`
 precision highp float;///maybe make this highp
 
     uniform sampler2D tex;
-
+    uniform float zoom;
     varying vec2 tex_pos;
 
     void main(){
-        gl_FragData[0] = texture2D(tex,tex_pos);//Replace this????deprecated
+        gl_FragData[0] = texture2D(tex,zoom*(tex_pos-0.5)+0.5);//Replace this????deprecated
     }
 `
 const src_vertex_draw=`
@@ -460,6 +487,8 @@ const src_fragment_draw=`
     uniform float rng_seed;
     uniform float birth_prob;
     uniform int colors;
+    uniform int resolution_x;
+    uniform int resolution_y;
     varying vec2 tex_pos;
 
     
@@ -469,8 +498,8 @@ const src_fragment_draw=`
 
     void main(){
         float p = birth_prob;//0.6447;
-        float pix_width_x = 1.0/800.0;//TODO:Change this to uniform reso
-        float pix_width_y = 1.0/1600.0;//TODO:Change this to uniform reso
+        float pix_width_x = 1.0/float(resolution_x);//TODO:Change this to uniform reso
+        float pix_width_y = 1.0/float(resolution_y);//TODO:Change this to uniform reso
         
         vec4 downleft = texture2D(tex, vec2(tex_pos.x-pix_width_x,tex_pos.y-pix_width_y));
         vec4 downright = texture2D(tex, vec2(tex_pos.x+pix_width_x,tex_pos.y-pix_width_y));
@@ -542,6 +571,15 @@ precision highp float;///maybe make this highp
 
         //int left =200;
         //int right=600;
+        gl_FragData[0] = vec4(0.0,0.0,0.0,1.0);
+        gl_FragData[1] = vec4(0.0,0.0,0.0,1.0);
+        if(int(gl_FragCoord.x)>u_left &&int(gl_FragCoord.x)<u_right &&int(gl_FragCoord.y)==0){
+            gl_FragData[0] = vec4(1.0,1.0,1.0,1.0);
+            gl_FragData[1] = vec4(1.0,1.0,1.0,1.0);
+        }
+
+
+        //FOR debugging
         gl_FragData[0] = vec4(0.0,0.0,0.0,1.0);
         gl_FragData[1] = vec4(0.0,0.0,0.0,1.0);
         if(int(gl_FragCoord.x)>u_left &&int(gl_FragCoord.x)<u_right &&int(gl_FragCoord.y)==0){
