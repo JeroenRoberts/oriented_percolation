@@ -11,13 +11,13 @@
 
 
 
-        <i>Initial Condition:</i><br />
         <div>
+        <i>Initial Condition: </i>
             <input type="radio" id="All occupied" name="init" value="full"
                    checked>
             <label for="full">All occupied</label>
 
-            <input type="radio" id="Half occupied" name="init" value="half" checked>
+            <input type="radio" id="Half occupied" name="init" value="half" >
             <label for="half">Half occupied</label>
 
           <input type="radio" id="Single cell" name="init" value="single">
@@ -26,23 +26,35 @@
           
 
 
-        <i id="birth_print">Birth rate p = 0.35</i>
+        <i id="birth_print">Birth probability: 0.350</i>
         <div class="slidecontainer">
-            <input type="range" min="0" max="1000" value="350" class="slider" id="myRange2">
+            <input type="range" min="0" max="1000" value="350" class="slider" id="myRange2" onchange="updatebirthSlider(this.value)">
         </div>
-        <i id="simspeed">Simulation Speed = 2</i>
+         <br />
+        <i id="simspeed">Simulation Speed: 2</i>
         <div class="slidecontainer">
-            <input type="range" min="0" max="10" value="2" class="slider" id="myRange3" onchange="updateSlider(this.value)">
+            <input type="range" min="0" max="50" value="2" class="slider" id="myRange3" onchange="updatespeedSlider(this.value)">
         </div>
 
-        <i>Critical birth rate 0.32</i>
-        <input type="checkbox" id="myCheck2"><br /> 
+        <i hidden>Critical birth rate 0.332</i>
+        <hidden input type="checkbox" id="myCheck2"><hidden br /> 
 
-        <i>Pretty Colors:</i>
+        <i>Colors (strictly visual):</i>
         <input type="checkbox" id="myCheck" checked><br /> 
 
     </center>
         <style>
+            button {
+            border: none;
+            color: black;
+            padding: 12px 45px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            }
             .slidecontainer {
                 width: 100%; /* Width of the outside container */
             }

@@ -185,10 +185,12 @@ function button_press() {
 }
 
 var simulation_speed = 2;
-function updateSlider(slideAmount) {
-    console.log(slideAmount);
+function updatebirthSlider(slideAmount) {
+    document.getElementById("birth_print").innerHTML = "Birth probability: ".concat((slideAmount/1000).toString());
+}
+function updatespeedSlider(slideAmount) {
     simulation_speed = slideAmount;
-    document.getElementById("simspeed").innerHTML = "Simulation speed = ".concat(simulation_speed.toString());
+    document.getElementById("simspeed").innerHTML = "Simulation speed: ".concat(simulation_speed.toString());
 }
 
 function InitDemo(){
@@ -311,15 +313,15 @@ function InitDemo(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);//fbo0
     vaoExt['bindVertexArrayOES'](initial_buffers.vao);
     gl.useProgram(init_shader_program);
-    gl.uniform1i(uniforms_init.uni_left,parseInt(viewport_width/4));
-    gl.uniform1i(uniforms_init.uni_right,parseInt(3*viewport_width/4));
+    gl.uniform1i(uniforms_init.uni_left,parseInt(0));
+    gl.uniform1i(uniforms_init.uni_right,parseInt(viewport_width));
     draw_scene(gl);
     //Need to use two framebuffers?
     
     //Draw
     var step=1;
 
-    var birth_prob = 0.35;
+    var birth_prob = 0.350;
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
     gl.uniform1i(uniforms_draw.u_colors,1);
@@ -354,7 +356,7 @@ function InitDemo(){
             }else{
                 birth_prob =  document.getElementById("myRange2").value/1000;
             }
-            document.getElementById("birth_print").innerHTML = "Birth rate = ".concat(birth_prob.toString());
+            //document.getElementById("birth_print").innerHTML = "Birth probability: ".concat(birth_prob.toString());
             gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
 
 
@@ -478,14 +480,14 @@ const src_fragment_draw=`
             if(int(800.0*tex_pos.y)==step){
                 if( downleft.x>0.0&& rand(rng_seed*tex_pos) < p){
                         if(colors==1){
-                            gl_FragData[0] = vec4(0.1+0.45*(sin(0.002*time)+1.0),1.0-0.5*(sin(0.002*time)+1.0),0.5*cos(0.001*time)+1.0,1.0);
+                            gl_FragData[0] = vec4(0.3+0.4*(sin(0.008*float(step))+1.0),0.5-0.15*(sin(0.017*float(step))+1.0),1.0-0.3*(sin(0.011*float(step))+1.0),1.0);
                         }else{
                             gl_FragData[0] = vec4(1.0,0.0,0.0,1.0);
                         }
                 }
-                if( downright.x>0.0&& rand(rng_seed*time*tex_pos) < p){
+                if( downright.x>0.0&& rand(rng_seed*tex_pos) < p){
                         if(colors==1){
-                            gl_FragData[0] = vec4(0.1+0.45*(sin(0.002*time)+1.0),1.0-0.5*(sin(0.002*time)+1.0),0.5*cos(0.001*time)+1.0,1.0);
+                            gl_FragData[0] = vec4(0.3+0.4*(sin(0.008*float(step))+1.0),0.5-0.15*(sin(0.017*float(step))+1.0),1.0-0.3*(sin(0.011*float(step))+1.0),1.0);
                         }else{
                             gl_FragData[0] = vec4(1.0,0.0,0.0,1.0);
                         }
@@ -499,16 +501,16 @@ const src_fragment_draw=`
             
             
             if(int(800.0*tex_pos.y)==step){
-                if( downleft.x>0.0&& rand(rng_seed*time*tex_pos) < p){
+                if( downleft.x>0.0&& rand(rng_seed*tex_pos) < p){
                         if(colors==1){
-                            gl_FragData[1] = vec4(0.1+0.45*(sin(0.002*time)+1.0),1.0-0.5*(sin(0.002*time)+1.0),0.5*cos(0.001*time)+1.0,1.0);
+                            gl_FragData[1] = vec4(0.3+0.4*(sin(0.008*float(step))+1.0),0.5-0.15*(sin(0.017*float(step))+1.0),1.0-0.3*(sin(0.011*float(step))+1.0),1.0);
                         }else{
                             gl_FragData[1] = vec4(1.0,0.0,0.0,1.0);
                         }
                 }
-                if( downright.x>0.0&& rand(rng_seed*time*tex_pos) < p){
+                if( downright.x>0.0&& rand(rng_seed*tex_pos) < p){
                         if(colors==1){
-                            gl_FragData[1] = vec4(0.1+0.45*(sin(0.002*time)+1.0),1.0-0.5*(sin(0.002*time)+1.0),0.5*cos(0.001*time)+1.0,1.0);
+                            gl_FragData[1] = vec4(0.3+0.4*(sin(0.008*float(step))+1.0),0.5-0.15*(sin(0.017*float(step))+1.0),1.0-0.3*(sin(0.011*float(step))+1.0),1.0);
                         }else{
                             gl_FragData[1] = vec4(1.0,0.0,0.0,1.0);
                         }
