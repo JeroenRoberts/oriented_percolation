@@ -188,7 +188,7 @@ function button_press() {
 function InitDemo(){
     console.log('This is working');
     var canvas = document.getElementById('game-surface');
-    viewport_width=800;
+    viewport_width=1600;
     viewport_height=800;
     var gl=init_WebGL(canvas,viewport_width,viewport_height);//(.,width , height)
 
@@ -241,11 +241,15 @@ function InitDemo(){
     const tex_src = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex_src);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, viewport_width,viewport_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//0 vs NULL in last? WTF is this
-    
+    if(0){//NOT WORKING IDK WHY NEED TO DEBUG
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    }else{//CLAMP_TO_EDGE  CLAMP_TO_BORDER // MIRRORED_REPEAT
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     
     gl.activeTexture(gl.TEXTURE1);//Make this 0??
@@ -253,10 +257,15 @@ function InitDemo(){
     gl.bindTexture(gl.TEXTURE_2D, tex_dest);//Maybe something with this????
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, viewport_width,viewport_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//performance !! rgb vs r
     
+    if(0){
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    }else{
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);//change to repeat but doesnt work :(
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     
 
 
@@ -297,8 +306,8 @@ function InitDemo(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);//fbo0
     vaoExt['bindVertexArrayOES'](initial_buffers.vao);
     gl.useProgram(init_shader_program);
-    gl.uniform1i(uniforms_init.uni_left,200);
-    gl.uniform1i(uniforms_init.uni_right,600);
+    gl.uniform1i(uniforms_init.uni_left,400);
+    gl.uniform1i(uniforms_init.uni_right,1200);
     draw_scene(gl);
     //Need to use two framebuffers?
     
@@ -349,13 +358,13 @@ function InitDemo(){
             gl.useProgram(init_shader_program);
             if(document.getElementById("All occupied").checked==true){//Take this out of loop
                 gl.uniform1i(uniforms_init.uni_left,0);
-                gl.uniform1i(uniforms_init.uni_right,800);
+                gl.uniform1i(uniforms_init.uni_right,1600);
             }else if(document.getElementById("Half occupied").checked==true){
-                gl.uniform1i(uniforms_init.uni_left,200);
-                gl.uniform1i(uniforms_init.uni_right,600);
+                gl.uniform1i(uniforms_init.uni_left,400);
+                gl.uniform1i(uniforms_init.uni_right,1200);
             }else if(document.getElementById("Single cell").checked==true){//Single cell
-                gl.uniform1i(uniforms_init.uni_left,395);
-                gl.uniform1i(uniforms_init.uni_right,405);
+                gl.uniform1i(uniforms_init.uni_left,795);
+                gl.uniform1i(uniforms_init.uni_right,805);
             }
             draw_scene(gl);
             step =0;
@@ -381,10 +390,9 @@ function InitDemo(){
 
 
 const src_vertex_render=`
-    #ifdef GL_ES
-        precision mediump float;
-    #endif
-    #extension GL_OES_standard_derivatives : enable
+#extension GL_EXT_draw_buffers : require
+#extension GL_OES_standard_derivatives : enable
+precision highp float;///maybe make this highp
     
 
     attribute vec2 vert_position;
@@ -398,10 +406,9 @@ const src_vertex_render=`
     }
 `
 const src_fragment_render=`
-    #ifdef GL_ES
-        precision mediump float;///??
-    #endif
-    #extension GL_OES_standard_derivatives : enable
+#extension GL_EXT_draw_buffers : require
+#extension GL_OES_standard_derivatives : enable
+precision highp float;///maybe make this highp
 
     uniform sampler2D tex;
 
@@ -412,10 +419,9 @@ const src_fragment_render=`
     }
 `
 const src_vertex_draw=`
-    #ifdef GL_ES
-        precision mediump float;
-    #endif
-    #extension GL_OES_standard_derivatives : enable
+#extension GL_EXT_draw_buffers : require
+#extension GL_OES_standard_derivatives : enable
+precision highp float;///maybe make this highp
 
     attribute vec2 vert_position;
     attribute vec2 tex_position;
@@ -429,11 +435,9 @@ const src_vertex_draw=`
     }
 `
 const src_fragment_draw=`
-    #ifdef GL_ES
-        precision mediump float;///??
-    #endif
-    #extension GL_OES_standard_derivatives : enable
     #extension GL_EXT_draw_buffers : require
+    #extension GL_OES_standard_derivatives : enable
+    precision highp float;///maybe make this highp
 
     uniform float time;
     uniform int color_attach;
@@ -452,7 +456,7 @@ const src_fragment_draw=`
     void main(){
         float p = birth_prob;//0.6447;
         float pix_width_x = 1.0/800.0;//TODO:Change this to uniform reso
-        float pix_width_y = 1.0/800.0;//TODO:Change this to uniform reso
+        float pix_width_y = 1.0/1600.0;//TODO:Change this to uniform reso
         
         vec4 downleft = texture2D(tex, vec2(tex_pos.x-pix_width_x,tex_pos.y-pix_width_y));
         vec4 downright = texture2D(tex, vec2(tex_pos.x+pix_width_x,tex_pos.y-pix_width_y));
@@ -460,7 +464,7 @@ const src_fragment_draw=`
             gl_FragData[0] = texture2D(tex,tex_pos);
             //
             if(int(800.0*tex_pos.y)==step){
-                if( downleft.x>0.0&& rand(rng_seed*time*tex_pos) < p){
+                if( downleft.x>0.0&& rand(rng_seed*tex_pos) < p){
                         if(colors==1){
                             gl_FragData[0] = vec4(0.1+0.45*(sin(0.002*time)+1.0),1.0-0.5*(sin(0.002*time)+1.0),0.5*cos(0.001*time)+1.0,1.0);
                         }else{
@@ -505,10 +509,9 @@ const src_fragment_draw=`
 `
 
 const src_vertex_init=`
-    #ifdef GL_ES
-        precision mediump float;
-    #endif
-    #extension GL_OES_standard_derivatives : enable
+#extension GL_EXT_draw_buffers : require
+#extension GL_OES_standard_derivatives : enable
+precision highp float;///maybe make this highp
 
     attribute vec2 vert_position;
 
@@ -518,11 +521,9 @@ const src_vertex_init=`
     }
 `
 const src_fragment_init=`
-    #ifdef GL_ES
-        precision mediump float;///??
-    #endif
-    #extension GL_OES_standard_derivatives : enable
-    #extension GL_EXT_draw_buffers : require
+#extension GL_EXT_draw_buffers : require
+#extension GL_OES_standard_derivatives : enable
+precision highp float;///maybe make this highp
     uniform int u_left;
     uniform int u_right;
 
