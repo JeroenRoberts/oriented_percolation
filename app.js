@@ -197,7 +197,7 @@ function updatespeedSlider(slideAmount) {
 }
 var zoom =1;
 function zoom_func(event){
-   zoom += event.deltaY * -0.01 *0.1;
+   zoom += event.deltaY * 0.01 *0.1;
    //zoom = 0.5;
    console.log(event.deltaY)
 }
@@ -337,15 +337,15 @@ function InitDemo(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);//fbo0
     vaoExt['bindVertexArrayOES'](initial_buffers.vao);
     gl.useProgram(init_shader_program);
-    gl.uniform1i(uniforms_init.uni_left,parseInt(0));
-    gl.uniform1i(uniforms_init.uni_right,parseInt(viewport_width));
+    gl.uniform1i(uniforms_init.uni_left,parseInt(tex_width/4));
+    gl.uniform1i(uniforms_init.uni_right,parseInt(3*tex_width/4));
     draw_scene(gl);
     //Need to use two framebuffers?
     
     //Draw
     var step=1;
 
-    var birth_prob = 0.350;
+    var birth_prob = 0.674;
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
     gl.uniform1i(uniforms_draw.u_colors,1);
