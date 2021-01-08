@@ -390,8 +390,6 @@ function InitDemo(){
 
 
 const src_vertex_render=`
-#extension GL_EXT_draw_buffers : require
-#extension GL_OES_standard_derivatives : enable
 precision highp float;///maybe make this highp
     
 
@@ -406,8 +404,6 @@ precision highp float;///maybe make this highp
     }
 `
 const src_fragment_render=`
-#extension GL_EXT_draw_buffers : require
-#extension GL_OES_standard_derivatives : enable
 precision highp float;///maybe make this highp
 
     uniform sampler2D tex;
@@ -419,8 +415,6 @@ precision highp float;///maybe make this highp
     }
 `
 const src_vertex_draw=`
-#extension GL_EXT_draw_buffers : require
-#extension GL_OES_standard_derivatives : enable
 precision highp float;///maybe make this highp
 
     attribute vec2 vert_position;
@@ -435,8 +429,7 @@ precision highp float;///maybe make this highp
     }
 `
 const src_fragment_draw=`
-    #extension GL_EXT_draw_buffers : require
-    #extension GL_OES_standard_derivatives : enable
+    #extension GL_EXT_draw_buffers : enable
     precision highp float;///maybe make this highp
 
     uniform float time;
@@ -509,8 +502,6 @@ const src_fragment_draw=`
 `
 
 const src_vertex_init=`
-#extension GL_EXT_draw_buffers : require
-#extension GL_OES_standard_derivatives : enable
 precision highp float;///maybe make this highp
 
     attribute vec2 vert_position;
@@ -521,8 +512,7 @@ precision highp float;///maybe make this highp
     }
 `
 const src_fragment_init=`
-#extension GL_EXT_draw_buffers : require
-#extension GL_OES_standard_derivatives : enable
+#extension GL_EXT_draw_buffers : enable
 precision highp float;///maybe make this highp
     uniform int u_left;
     uniform int u_right;
