@@ -184,13 +184,17 @@ function button_press() {
     console.log(document.getElementById("All occupied").checked,document.getElementById("Half occupied").checked,document.getElementById("Single cell").checked);
 }
 
+var simulation_speed = 2;
+function updateSlider(slideAmount) {
+    console.log(slideAmount);
+    simulation_speed = slideAmount;
+    document.getElementById("simspeed").innerHTML = "Simulation speed = ".concat(simulation_speed.toString());
+}
 
 function InitDemo(){
-    console.log('This is working');
     var canvas = document.getElementById('game-surface');
     const viewport_width=parseInt(screen.width*0.95);
-    console.log(screen.height);
-    const viewport_height= parseInt(0.6*(screen.height));//parseInt(screen.height);//parseInt(800*0.75);//
+    const viewport_height= parseInt(0.7*(screen.height));//parseInt(screen.height);//parseInt(800*0.75);//
     var gl=init_WebGL(canvas,viewport_width,viewport_height);//(.,width , height)
 
     
@@ -319,39 +323,46 @@ function InitDemo(){
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
     gl.uniform1i(uniforms_draw.u_colors,1);
-    
+
     var loop = function(){
 
 
+        for(i=0;i<simulation_speed;i++){
+            var data = update_cpu_data(timer);
 
-        var data = update_cpu_data(timer);
+            gl.useProgram(draw_shader_program);
+            vaoExt['bindVertexArrayOES'](draw_buffers.vao);
+            upload_data_to_gpu(gl,data,uniforms_draw,color_attach,step);//uniforms vs uniforms_draw??
+            gl.uniform1f(uniforms_draw.u_rng_seed,Math.random()); // Maybe convert to float?
+            if(color_attach==0){
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);// 0 or 1?? one causes error , one doesn't
+                gl.uniform1i(gl.getUniformLocation(draw_shader_program, "tex"),1);
+                color_attach= 1;
+            }else{
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1);
+                gl.uniform1i(gl.getUniformLocation(draw_shader_program, "tex"),0);
+                color_attach= 0;
+            }
 
-        gl.useProgram(draw_shader_program);
-        vaoExt['bindVertexArrayOES'](draw_buffers.vao);
-        upload_data_to_gpu(gl,data,uniforms_draw,color_attach,step);//uniforms vs uniforms_draw??
-        gl.uniform1f(uniforms_draw.u_rng_seed,Math.random()); // Maybe convert to float?
-        if(color_attach==0){
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);// 0 or 1?? one causes error , one doesn't
-            gl.uniform1i(gl.getUniformLocation(draw_shader_program, "tex"),1);
-            color_attach= 1;
-        }else{
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1);
-            gl.uniform1i(gl.getUniformLocation(draw_shader_program, "tex"),0);
-            color_attach= 0;
+            draw_scene(gl);
+            step=step+1;
         }
-
-        draw_scene(gl);
-        step=step+1;
-        
-        if(reset_true==1){
-            console.log(step)
+        if(reset_true==1&&simulation_speed>0){
+            gl.useProgram(draw_shader_program);
             if(document.getElementById("myCheck2").checked==true){
-                birth_prob = 0.6447/2;
+                birth_prob = 0.32;
             }else{
                 birth_prob =  document.getElementById("myRange2").value/1000;
             }
-            document.getElementById("birth_print").innerHTML = "Birth rate p = ".concat(birth_prob.toString());
+            document.getElementById("birth_print").innerHTML = "Birth rate = ".concat(birth_prob.toString());
             gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
+
+
+
+            //simulation_speed =  document.getElementById("myRange3").value;
+            //document.getElementById("simspeed").innerHTML = "Simulation speed = ".concat(simulation_speed.toString());
+
+
             if(document.getElementById("myCheck").checked==true){
                 gl.uniform1i(uniforms_draw.u_colors,1) ;
             }else{
@@ -373,6 +384,11 @@ function InitDemo(){
             step =0;
             reset_true=0;
             
+        }else if(reset_true==1&&simulation_speed==0){
+            simulation_speed = 1;
+            document.getElementById("myRange3").value = simulation_speed;
+            document.getElementById("simspeed").innerHTML = "Simulation speed = ".concat(simulation_speed.toString());
+
         }
         
         gl.useProgram(render_shader_program);
