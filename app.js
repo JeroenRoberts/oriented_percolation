@@ -188,8 +188,9 @@ function button_press() {
 function InitDemo(){
     console.log('This is working');
     var canvas = document.getElementById('game-surface');
-    viewport_width=1600;
-    viewport_height=800;
+    const viewport_width=parseInt(screen.width*0.95);
+    console.log(screen.height);
+    const viewport_height= parseInt(0.6*(screen.height));//parseInt(screen.height);//parseInt(800*0.75);//
     var gl=init_WebGL(canvas,viewport_width,viewport_height);//(.,width , height)
 
     
@@ -306,15 +307,15 @@ function InitDemo(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);//fbo0
     vaoExt['bindVertexArrayOES'](initial_buffers.vao);
     gl.useProgram(init_shader_program);
-    gl.uniform1i(uniforms_init.uni_left,400);
-    gl.uniform1i(uniforms_init.uni_right,1200);
+    gl.uniform1i(uniforms_init.uni_left,parseInt(viewport_width/4));
+    gl.uniform1i(uniforms_init.uni_right,parseInt(3*viewport_width/4));
     draw_scene(gl);
     //Need to use two framebuffers?
     
     //Draw
     var step=1;
 
-    var birth_prob = 0.6447;
+    var birth_prob = 0.35;
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
     gl.uniform1i(uniforms_draw.u_colors,1);
@@ -343,11 +344,13 @@ function InitDemo(){
         step=step+1;
         
         if(reset_true==1){
+            console.log(step)
             if(document.getElementById("myCheck2").checked==true){
-                birth_prob = 0.6447;
+                birth_prob = 0.6447/2;
             }else{
                 birth_prob =  document.getElementById("myRange2").value/1000;
             }
+            document.getElementById("birth_print").innerHTML = "Birth rate p = ".concat(birth_prob.toString());
             gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
             if(document.getElementById("myCheck").checked==true){
                 gl.uniform1i(uniforms_draw.u_colors,1) ;
@@ -358,13 +361,13 @@ function InitDemo(){
             gl.useProgram(init_shader_program);
             if(document.getElementById("All occupied").checked==true){//Take this out of loop
                 gl.uniform1i(uniforms_init.uni_left,0);
-                gl.uniform1i(uniforms_init.uni_right,1600);
+                gl.uniform1i(uniforms_init.uni_right,parseInt(viewport_width));//MIGHT GIVE TROUBLE IF NOT AN INT
             }else if(document.getElementById("Half occupied").checked==true){
-                gl.uniform1i(uniforms_init.uni_left,400);
-                gl.uniform1i(uniforms_init.uni_right,1200);
+                gl.uniform1i(uniforms_init.uni_left,parseInt(viewport_width/4));//MIGHT GIVE TROUBLE IF NOT AN INT
+                gl.uniform1i(uniforms_init.uni_right,parseInt(3*viewport_width/4));//MIGHT GIVE TROUBLE IF NOT AN INT
             }else if(document.getElementById("Single cell").checked==true){//Single cell
-                gl.uniform1i(uniforms_init.uni_left,795);
-                gl.uniform1i(uniforms_init.uni_right,805);
+                gl.uniform1i(uniforms_init.uni_left,parseInt(viewport_width/2 -5));//MIGHT GIVE TROUBLE IF NOT AN INT
+                gl.uniform1i(uniforms_init.uni_right,parseInt(viewport_width/2 +5));//MIGHT GIVE TROUBLE IF NOT AN INT
             }
             draw_scene(gl);
             step =0;

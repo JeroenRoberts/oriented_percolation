@@ -1,12 +1,13 @@
 <html>
-    <title>WebGL - Simple triangle</title>
+    <title>Oriented percolation</title>
     </head>
     <body onload="InitDemo();">
+        <center>
         <canvas id ="game-surface" width="800" height = "600">
             Your browser does not support HTML5
         </canvas>
         <br />
-        <button onclick="button_press()">Reset</button><br /> <br /> 
+        <button onclick="button_press()">Reset</button><br />
 
 
 
@@ -25,16 +26,18 @@
           
 
 
-        <i>Birth rate p:</i>
+        <i id="birth_print">Birth rate p = 0.35</i>
         <div class="slidecontainer">
-            p=0<input type="range" min="0" max="1000" value="645" class="slider" id="myRange2">p=1
+            <input type="range" min="0" max="1000" value="350" class="slider" id="myRange2">
         </div>
 
-        <i>Critical birth rate p=0.6647:</i>
+        <i>Critical birth rate p=0.32:</i>
         <input type="checkbox" id="myCheck2"><br /> 
 
         <i>Pretty Colors:</i>
         <input type="checkbox" id="myCheck" checked><br /> 
+
+    </center>
         <style>
             .slidecontainer {
                 width: 100%; /* Width of the outside container */
