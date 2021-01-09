@@ -1,0 +1,30 @@
+-Improve zooming experience. smooth it out
+-Optimize JS mouse_position_get
+-clean up code.
+-Drawrect and zoom (draw rectangle and zoom in on this rectangel). Could use svg to draw the rectangle. put it overtop, so it don't mess with opengl.
+-Post-processing: blur , anti aliasing etc..
+-make gridlength by just zooming in the x direciotn.
+
+
+
+DONE:
+-get gl.repeat to work for periodic boundary conditions.ONly works if resolution a power of 2......
+-colours is in render now. big efficiency upgrade. look out for this
+
+
+
+TODAY:
+1) use same vertices for different shader program.
+2)BUTTONS
+    make em pop out
+    overlay the over the canvas.
+
+FOr implementing textu size != render size do: gl.viewport
+
+remove debug stuff once done. ( kind of unneccesary though already very fast)
+
+Pratice smaller texture size. with viewport
+
+
+
+https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices

@@ -1,59 +1,100 @@
 <html>
     <title>Oriented percolation</title>
-    </head>
-    <body onload="InitDemo();">
+
+
+    <body style ="background-color: rgb(155, 139, 139);" onload="InitDemo();">
+        <div class="wrapper">
         <center>
         <canvas id ="game-surface" width="800" height = "600">
             Your browser does not support HTML5
         </canvas>
-        <br />
-        <button onclick="button_press()">Reset</button><br />
+        <button onclick="button_press()" id ="reset_button">Reset</button>
+        
+        <button id="myBtn" onclick="settings_button_press()">Settings</button>
 
+        
 
-
-        <div>
-        <i>Initial Condition: </i>
-            <input type="radio" id="All occupied" name="init" value="full"
-                   >
-            <label for="full">All occupied</label>
-
-            <input type="radio" id="Half occupied" name="init" value="half" checked>
-            <label for="half">Half occupied</label>
-
-          <input type="radio" id="Single cell" name="init" value="single">
-          <label for="single">10 cells</label>
-      </div>
+        <div id="myModal" class="modal" style="visibility:hidden">
+            <!-- Modal content -->
           
-
-
-        <i id="birth_print">Birth probability: 0.674</i>
-        <div class="slidecontainer">
-            <input type="range" min="0" max="1000" value="674" class="slider" id="myRange2" onchange="updatebirthSlider(this.value)">
+            <div>
+                <i style="font-size:20px;">Initial: </i>
+                    <input type="radio" id="All occupied" name="init" value="full">
+                    <label for="full"style="font-size:15px;">All occupied</label>
+        
+                    <input type="radio" id="Half occupied" name="init" value="half" checked>
+                    <label for="half"style="font-size:15px;">Half occupied</label>
+        
+                    <input type="radio" id="Single cell" name="init" value="single">
+                    <label for="single"style="font-size:15px;">10 cells</label>
+            </div>
+                
+        
+        
+                <i id="birth_print" style="font-size:20px;">Birth probability: 0.674</i>
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="1000" value="674" class="slider" id="myRange2" onchange="updatebirthSlider(this.value)">
+                </div>
+                <i id="simspeed" style="font-size:20px;">Simulation speed: 2</i>
+                <div class="slidecontainer">
+                    <input type="range" min="0" max="50" value="2" class="slider" id="myRange3" onchange="updatespeedSlider(this.value)">
+                </div>
+                <i id="grid_x_print" style="font-size:20px;">Lattice size: 100</i>
+                <div class="slidecontainer">
+                    <input type="range" min="10" max="1000" value="674" class="slider" id="grid_x_slider" onchange="updategridxSlider(this.value)">
+                </div>
+                <i hidden>Critical birth rate 0.332</i>
+                <hidden input type="checkbox" id="myCheck2"><hidden br /> 
+        
+                <i style="font-size:15px;">Colors (strictly visual):</i>
+                <input type="checkbox" id="myCheck" checked><br /> 
+            </div>
         </div>
-         <br />
-        <i id="simspeed">Simulation Speed: 2</i>
-        <div class="slidecontainer">
-            <input type="range" min="0" max="50" value="2" class="slider" id="myRange3" onchange="updatespeedSlider(this.value)">
-        </div>
 
-        <i hidden>Critical birth rate 0.332</i>
-        <hidden input type="checkbox" id="myCheck2"><hidden br /> 
-
-        <i>Colors (strictly visual):</i>
-        <input type="checkbox" id="myCheck" checked><br /> 
 
     </center>
         <style>
+            .wrapper {
+                position: relative;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #myModal {
+                position: absolute;
+                top: 0;
+                right: 100;
+                background-color: grey;
+            }
+            #reset_button {
+                position: absolute;
+                top: 60;
+                right: 0;
+            }
+            #myBtn {
+                position: absolute;
+                top: 0;
+                right: 0;
+            }
+            body {    
+                margin: 0 !important;
+                padding: 0 !important;
+            }
             button {
-            border: none;
+            border-radius: 5px;
+            border: 5px solid #46073d; /* Green */
+            background-color: grey;
             color: black;
-            padding: 12px 45px;
-            text-align: center;
+            width: 100px;
+            height: 50px;
+            text-align: left;
             text-decoration: none;
-            display: inline-block;
             font-size: 16px;
-            margin: 4px 2px;
+            margin: 0px 0px;
             cursor: pointer;
+            }
+            button:focus {
+                outline: none;
+                box-shadow: none;
             }
             .slidecontainer {
                 width: 100%; /* Width of the outside container */
@@ -61,10 +102,11 @@
 
             /* The slider itself */
             .slider {
+            border-radius: 5px; 
             -webkit-appearance: none;  /* Override default CSS styles */
             appearance: none;
-            width: 30%; /* Full-width */
-            height: 25px; /* Specified height */
+            width: 95%; /* Full-width */
+            height: 10px; /* Specified height */
             background: #d3d3d3; /* Grey background */
             outline: none; /* Remove outline */
             opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
@@ -81,9 +123,10 @@
             .slider::-webkit-slider-thumb {
             -webkit-appearance: none; /* Override default look */
             appearance: none;
-            width: 25px; /* Set a specific slider handle width */
-            height: 25px; /* Slider handle height */
-            background: #4CAF50; /* Green background */
+            border-radius: 50%; 
+            width: 18px; /* Set a specific slider handle width */
+            height: 18px; /* Slider handle height */
+            background: #46073d; /* Green background */
             cursor: pointer; /* Cursor on hover */
             }
 
