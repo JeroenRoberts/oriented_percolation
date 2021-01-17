@@ -130,7 +130,6 @@ function upload_data_to_gpu(gl,uniforms,color_attach,step){
 function set_width_height(gl,canvas,w,h){
     canvas.width = w;
     canvas.height = h;
-    gl.viewport(0,0,w,h);
 
 }
 var reset_true=0;
@@ -158,7 +157,7 @@ function updategridxSlider(slideAmount) {
     grid_x= slideAmount
     document.getElementById("grid_x_print").innerHTML = "Lattice size: ".concat(grid_x.toString());
 }
-var simulation_speed = 2;
+var simulation_speed = 1;
 function updatebirthSlider(slideAmount) {
     document.getElementById("birth_print").innerHTML = "Birth probability: ".concat((slideAmount/1000).toString());
 }
@@ -245,19 +244,47 @@ function get_init_uniform_locations(gl,shader_program){
     
     return {u_left : uni_left, u_right: uni_right};
 }
+function create_framebuffer_textures(gl,tex_width,tex_height){
+
+    gl.activeTexture(gl.TEXTURE0);
+    const tex_src = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex_src);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//0 vs NULL in last? WTF is this
+    set_texture_settings(gl);
+    
+    gl.activeTexture(gl.TEXTURE1);//Make this 0??
+    const tex_dest = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex_dest);//Maybe something with this????
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//performance !! rgb vs r
+    set_texture_settings(gl);
+
+    return {src:tex_src , dest:tex_dest};
+
+}
+function set_framebuffer_textures(gl,tex_width,tex_height,tex_src,tex_dest){
+
+    gl.bindTexture(gl.TEXTURE_2D, tex_src);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//0 vs NULL in last? WTF is this
+
+    gl.bindTexture(gl.TEXTURE_2D, tex_dest);//Maybe something with this????
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_height, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//performance !! rgb vs r
+
+}
+
+
 function InitDemo(){
     var canvas = document.getElementById('game-surface');
     const width  = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     const height = window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
     const viewport_width = parseInt(width);//For PBC need widh to be power of 2....
     const viewport_height= parseInt(height);//screen.height if fullscreen
-    const tex_width= viewport_width;
-    const tex_heigth= viewport_height;//Serious bug if not the same: need to figure out how to use gl.viewport correctly.: Do practice example
+    var tex_width= parseInt(0.2*viewport_width);
+    var tex_height=parseInt(0.2* viewport_height);//Serious bug if not the same: need to figure out how to use gl.viewport correctly.: Do practice example
     var gl=init_WebGL(canvas,viewport_width,viewport_height);//(.,width , height)
     var grid_x_slider = document.getElementById('grid_x_slider');
     grid_x_slider.max =viewport_width;
-    grid_x_slider.value =viewport_width;
-    document.getElementById("grid_x_print").innerHTML = "Lattice size: ".concat(viewport_width.toString());
+    grid_x_slider.value =parseInt(0.2*viewport_width);
+    document.getElementById("grid_x_print").innerHTML = "Lattice size: ".concat(grid_x_slider.value.toString());
 
     canvas.onwheel = zoom_func;
     
@@ -282,47 +309,36 @@ function InitDemo(){
 
 
     //Texture
-    gl.activeTexture(gl.TEXTURE0);
-    const tex_src = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex_src);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_heigth, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//0 vs NULL in last? WTF is this
-    set_texture_settings(gl);
-    
-    gl.activeTexture(gl.TEXTURE1);//Make this 0??
-    const tex_dest = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex_dest);//Maybe something with this????
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_width,tex_heigth, 0, gl.RGB, gl.UNSIGNED_BYTE, null);//performance !! rgb vs r
-    set_texture_settings(gl);
-
-
+    fbo_textures = create_framebuffer_textures(gl,tex_width,tex_height);
     
     const fbo0 = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, Ext_draw_buffer.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, tex_src, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, Ext_draw_buffer.COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, fbo_textures.src, 0);
 
     
     const fbo1 = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1);//Do i really need different color attachment when using two framebuffers?
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, Ext_draw_buffer.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, tex_dest, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, Ext_draw_buffer.COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, fbo_textures.dest, 0);
     var color_attach =1; //
+
+
 
 
     gl.useProgram(render_shader_program);
     gl.uniform1i(uniforms_render.u_tex, 0);
-    gl.uniform1i(uniforms_render.u_reso_x, tex_width);//Maybe want viewport_height instead?
-    gl.uniform1i(uniforms_render.u_reso_y, tex_heigth);//Maybe want viewport_height instead?
+    gl.uniform1i(uniforms_render.u_reso_x, viewport_width);//Maybe want viewport_height instead?
+    gl.uniform1i(uniforms_render.u_reso_y, viewport_height);//Maybe want viewport_height instead?
     gl.uniform1i(uniforms_render.u_colors,1);
     grid_x=1.0;//
     gl.uniform1f(uniforms_render.u_grid_x,grid_x);
 
 
+
     //What to draw?
     gl.clearColor(0.0,0.0,0.0,1.0);//Is this program dependent?? , not sure
 
-
-
+            
    
-    
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_rng_seed,Math.random()); // Maybe convert to float?
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);
@@ -335,9 +351,13 @@ function InitDemo(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo0);//fbo0
     //vaoExt['bindVertexArrayOES'](initial_buffers.vao);
     gl.useProgram(init_shader_program);
+    
     gl.uniform1i(uniforms_init.u_left,parseInt(tex_width/4));
     gl.uniform1i(uniforms_init.u_right,parseInt(3*tex_width/4));
     //gl.viewport(0,0,100,100);//DEBUGGING CARE
+    
+    gl.viewport(0,0,tex_width,tex_height);
+    //    
     draw_scene(gl);
     //Need to use two framebuffers?
     
@@ -348,7 +368,7 @@ function InitDemo(){
     gl.useProgram(draw_shader_program);
     gl.uniform1f(uniforms_draw.u_birth_prob,birth_prob);
     gl.uniform1i(uniforms_draw.u_resolution_x,tex_width);
-    gl.uniform1i(uniforms_draw.u_resolution_y,tex_heigth);
+    gl.uniform1i(uniforms_draw.u_resolution_y,tex_height);
     gl.uniform1i(uniforms_draw.u_bool_zoom,0);//Hmm
 
     var loop = function(){
@@ -373,11 +393,21 @@ function InitDemo(){
             }
 
             //gl.viewport(0,0,100,100);//DEBUGGING CARE
+            gl.viewport(0,0,tex_width,tex_height);
             draw_scene(gl);
             step=step+1;
         }
         if(reset_true==1&&simulation_speed>0){
+            
+            tex_width = parseInt(grid_x_slider.value);
+            tex_height = parseInt(grid_x_slider.value/viewport_width*viewport_height);
+            set_framebuffer_textures(gl,tex_width,tex_height,fbo_textures.src,fbo_textures.dest);
+        
+
+
             gl.useProgram(draw_shader_program);
+            gl.uniform1i(uniforms_draw.u_resolution_x,tex_width);
+            gl.uniform1i(uniforms_draw.u_resolution_y,tex_height);
             if(document.getElementById("myCheck2").checked==true){
                 birth_prob = 0.32;
             }else{
@@ -411,6 +441,7 @@ function InitDemo(){
                 gl.uniform1i(uniforms_init.u_right,parseInt(tex_width/2 +5));//MIGHT GIVE TROUBLE IF NOT AN INT
             }
             //gl.viewport(0,0,100,100);//DEBUGGING CARE
+            gl.viewport(0,0,tex_width,tex_height);
             draw_scene(gl);
             step =0;
             reset_true=0;
@@ -427,8 +458,8 @@ function InitDemo(){
         gl.uniform1i(uniforms_render.u_mouse_x,mouse_x);//TODO: remove getlocation from this loop, inefficient and unccenesar
         gl.uniform1i(uniforms_render.u_mouse_y,mouse_y);
         gl.uniform1i(uniforms_render.u_step,step);
-        grid_x = grid_x_slider.value/viewport_width;
-        gl.uniform1f(uniforms_render.u_grid_x,grid_x);
+        //grid_x = grid_x_slider.value/viewport_width;
+        //gl.uniform1f(uniforms_render.u_grid_x,grid_x);
         //vaoExt['bindVertexArrayOES'](render_buffers.vao);//Can leave this out apparently slightly hacky thought
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         if(color_attach == 0){
@@ -437,6 +468,7 @@ function InitDemo(){
             gl.uniform1i(gl.getUniformLocation(render_shader_program, "tex"), 0);
         }
         //gl.viewport(0,0,viewport_width,viewport_height);//DEBUGGING CARE
+        gl.viewport(0,0,viewport_width,viewport_height);
         render_to_screen(gl);//can replace by draw_scene
 
         requestAnimationFrame(loop);
@@ -465,7 +497,7 @@ precision highp float;///maybe make this highp
 
     uniform sampler2D tex;
     uniform float zoom;//mousewheel variable
-    uniform float grid_x;//mousewheel variable
+    //uniform float grid_x;//mousewheel variable
     uniform int step;//Don't need this anymore I don't think
     uniform int mouse_x;
     uniform int mouse_y;
@@ -491,9 +523,9 @@ precision highp float;///maybe make this highp
         }
 
         //------------------------Grid_x zoom------------ (Interchange with camera??)
-        if(grid_x<0.99){
-        updated_tex_pos = vec2(grid_x*(updated_tex_pos.x-0.5) +0.5,-grid_x*(1.0-updated_tex_pos.y) +grid_x);//Can w edo this in vertex shader?
-        }
+        //if(grid_x<0.99){
+        //updated_tex_pos = vec2(grid_x*(updated_tex_pos.x-0.5) +0.5,-grid_x*(1.0-updated_tex_pos.y) +grid_x);//Can w edo this in vertex shader?
+        //}
         // --- ---------------------Read texture ---------------
         out_color = texture2D(tex,updated_tex_pos);
 
@@ -618,8 +650,8 @@ precision highp float;///maybe make this highp
         gl_FragData[0] = vec4(0.0,0.0,0.0,1.0);
         gl_FragData[1] = vec4(0.0,0.0,0.0,1.0);
         if(int(gl_FragCoord.x)>u_left &&int(gl_FragCoord.x)<u_right &&int(gl_FragCoord.y)==0){
-            gl_FragData[0] = vec4(0.7,0.35,0.7,1.0);
-            gl_FragData[1] = vec4(0.7,0.35,0.7,1.0);
+            gl_FragData[0] = vec4(1.0,0.0,0.0,1.0);
+            gl_FragData[1] = vec4(1.0,0.0,0.0,1.0);
         }
 
     }
